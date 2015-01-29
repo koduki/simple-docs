@@ -1,4 +1,4 @@
 Simple Docs
 =======================
 
-JSON base document style.
+Excel like document style with JSON.
