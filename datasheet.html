@@ -1,0 +1,192 @@
+<html><head><meta charset="UTF-8" /><title>DataSheet</title><script type="text/javascript">
+
+main_data = {
+  "Description":"GlassFish Application Server",
+  "Environment":["dev"],
+  "Network":{
+    "Host":["localhost.localdomain"],
+    "IP":["enp0s3", "10.0.2.15"]
+  },
+  "OSName":["Linux dev-ubuntu 3.13.0-32-generic"],
+  "JDK":{
+    "Version":["1.8.0_20"],
+    "Path":["/usr/java/java8"]
+  },
+  "GlassFish":{
+    "Version":["4.01"],
+    "Path":["/usr/local/glassfish4"],
+    "Domain":{
+      "Name":["base_domain"],
+      "Port":["8080","desc:HTTPSではなくHTTPを利用"]
+    }
+  },
+  "Directories":[
+    ["0755", "glassfish:glassfish", "/var/log/glassfish4"]
+  ],
+  "Packages":[
+    ["rsync"],
+    ["unzip"],
+    ["vim"],
+    ["git", "desc:開発用"]
+  ]
+};
+
+
+
+
+
+
+
+    </script>
+    <style>
+      table, td, th {
+        border-collapse: collapse;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+
+      .column-name th {
+        background-color: #AAAAAA;
+        text-align: center;
+      }
+      .header {
+        background-color: #f5f5f5;
+      }
+      .item th {
+        width:75px;
+      }
+      .item td {
+        width:400px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>DataSheet</h1>
+      <p></p>
+    </header>
+    <p>
+      <table id="datasheet">
+        <tr class="column-name">
+          <th colspan="5">Name</th>
+          <th>Value</th>
+          <th>Description</th>
+        </tr>
+      </table>
+    </p>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      var MAX_INDEX = 5;
+      var parse = function(data, name, index){
+        var split = function(value){
+          var size = value.length
+          var results = []
+          var last_item = value[size - 1];
+          if(last_item.match(/^desc:/) === null) {
+            results[0] = value;
+            results[1] = '';
+          } else {
+            results[0] = value.slice(0, size - 1);
+            results[1] = last_item.substring(5);
+          }
+
+          return results;
+        }
+
+        var appendName = function(tr, class_name, text, index) {
+          for (var i = 0; i < MAX_INDEX - index; i++) {
+            $("<th />").appendTo(tr);
+          }
+          $("<th class='" + class_name + "' />").attr('colspan', index).text(text).appendTo(tr);
+        }
+
+        var appendHeader = function(name, index) {
+          var tr = $('<tr/>');
+          appendName(tr, 'header', name, index);
+          $("<td class='header' />").appendTo(tr);
+          $("<td class='header' />").appendTo(tr);
+
+          $("#datasheet").append(tr);
+        }
+
+        var addItem = function(name, index){
+          // add item name
+          var tr = $('<tr class="item" />');
+          appendName(tr, 'item', name, index);
+          // split value and comment.
+          var columns = split(data[name]);
+          // add value
+          $("<td />").text(columns[0]).appendTo(tr);
+          // add description
+          $("<td />").text(columns[1]).appendTo(tr);
+
+          $("#datasheet").append(tr);
+        }
+
+        var addListItem = function(name, index){
+          // split value and comment.
+          for(var i = 0; i < data[name].length; i++) {
+            // add header
+            var tr = $('<tr/>');
+            appendName(tr, '', '', index);
+
+            var columns = split(data[name][i])
+            // add value
+            $("<td />").text(columns[0]).appendTo(tr);
+
+            // add description
+            $("<td />").text(columns[1]).appendTo(tr);
+
+            $("#datasheet").append(tr);
+          }
+        }
+
+        var addListItems = function(name, index){
+          appendHeader(name, index);
+          addListItem(name, index);
+        }
+
+        var addLayer = function(name, index) {
+          // add Layer
+          appendHeader(name, index);
+          // add children
+          for (item in data[name]) {
+            parse(data[name], item, index - 1);
+          }
+        }
+
+        var isItem = function(){
+          return data[name].constructor === Array;
+        }
+
+        var isItemList = function(){
+          return (data[name][0].constructor === Array);
+        }
+
+        // parse items
+        if (isItem() && isItemList()){
+          addListItems(name, index);
+        } else if (isItem()) {
+          addItem(name, index);
+        } else {
+          addLayer(name, index);
+        }
+      }
+
+      var preview = function(data){
+        for (name in data) {
+          if (name === 'Description') {
+            $("header p").text(data[name]);
+          } else {
+            parse(data, name, 5);
+          }
+        }
+      }
+
+      $(function(){
+        preview(main_data);
+      });
+    </script>
+  </body>
+</html>
